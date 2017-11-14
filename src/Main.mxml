@@ -4,8 +4,8 @@
 	theme="feathers.themes.MetalWorksDesktopTheme"
 	addedToStage="ats(event)">
 
-    <fx:Script>
-        <![CDATA[
+	<fx:Script>
+		<![CDATA[
 			import feathers.extensions.controls.text.TLFTextFieldTextEditor;
 			import feathers.core.ITextEditor;
 			import flashx.textLayout.formats.TextLayoutFormat;
@@ -21,12 +21,12 @@
 				return textRenderer;
 			}
 			private function ats(event:Event):void {
-                input.textEditorFactory = style;
+				input.textEditorFactory = style;
 				input.text = "starling feathers";
-            }
-        ]]>
+			}
+		]]>
     </fx:Script>
 
 	<f:TextInput width="300" id="input"/>
-    
+
 </f:Application>
