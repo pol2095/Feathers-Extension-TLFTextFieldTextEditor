@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<f:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+    xmlns:f="library://ns.feathersui.com/mxml"
+	theme="feathers.themes.MetalWorksDesktopTheme"
+	addedToStage="ats(event)">
+
+    <fx:Script>
+        <![CDATA[
+			import feathers.extensions.controls.text.TLFTextFieldTextEditor;
+			import feathers.core.ITextEditor;
+			import flashx.textLayout.formats.TextLayoutFormat;
+			
+			private function style():ITextEditor {
+				var textRenderer:TLFTextFieldTextEditor = new TLFTextFieldTextEditor();
+				var myFormat:TextLayoutFormat = new TextLayoutFormat();
+				myFormat.textIndent = 8;
+				myFormat.color = 0xFF0000;
+				myFormat.fontFamily = "Arial, Helvetica, _sans";
+				myFormat.fontSize = 12;
+				textRenderer.textFormat = myFormat;
+				return textRenderer;
+			}
+			private function ats(event:Event):void {
+                input.textEditorFactory = style;
+				input.text = "starling feathers";
+            }
+        ]]>
+    </fx:Script>
+
+	<f:TextInput width="300" id="input"/>
+    
+</f:Application>
