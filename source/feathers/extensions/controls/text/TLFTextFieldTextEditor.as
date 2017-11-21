@@ -676,16 +676,16 @@ package feathers.extensions.controls.text
 
 		/**
 		 * Determines if the TextField should display the value of the
-		 * <code>text</code> property as HTML or not.
+		 * <code>text</code> property as TextFlow or not.
 		 *
-		 * <p>In the following example, the text is displayed as HTML:</p>
+		 * <p>In the following example, the text is displayed as TextFlow :</p>
 		 *
 		 * <listing version="3.0">
-		 * textEditor.isHTML = true;</listing>
+		 * textEditor.useTextFlow = true;</listing>
 		 *
 		 * @default false
 		 *
-		 * @see http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/text/TextField.html#htmlText flash.text.TextField.htmlText
+		 * @see http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/fl/text/TLFTextField.html#textFlow flash.text.TextField.htmlText
 		 */
 		public function get useTextFlow():Boolean
 		{
