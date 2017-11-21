@@ -1,0 +1,57 @@
+<?xml version="1.0"?>
+<f:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+    xmlns:f="library://ns.feathersui.com/mxml"
+	theme="feathers.themes.MetalWorksDesktopTheme"
+	addedToStage="ats(event)">
+
+	<fx:Script>
+		<![CDATA[
+			import feathers.extensions.controls.text.TLFTextFieldTextEditor;
+			import feathers.extensions.controls.text.TLFTextFieldTextEditorViewPort;
+			import feathers.core.ITextEditor;
+			import flashx.textLayout.formats.TextLayoutFormat;
+			
+			private function styleInput():ITextEditor
+			{
+				var textRenderer:TLFTextFieldTextEditor = new TLFTextFieldTextEditor();
+				var myFormat:TextLayoutFormat = new TextLayoutFormat();
+				myFormat.textIndent = 8;
+				myFormat.color = 0xFF0000;
+				myFormat.fontFamily = "Arial, Helvetica, _sans";
+				myFormat.fontSize = 12;
+				textRenderer.textFormat = myFormat;
+				return textRenderer;
+			}
+			
+			private function styleArea():ITextEditor
+			{
+				var textRenderer:TLFTextFieldTextEditorViewPort = new TLFTextFieldTextEditorViewPort();
+				var myFormat:TextLayoutFormat = new TextLayoutFormat();
+				myFormat.textIndent = 8;
+				myFormat.color = 0xFFFFFF;
+				myFormat.fontFamily = "Arial, Helvetica, _sans";
+				myFormat.fontSize = 12;
+				textRenderer.textFormat = myFormat;
+				textRenderer.useTextFlow = true;
+				return textRenderer;
+			}
+			
+			private function ats(event:Event):void {
+				input.textEditorFactory = styleInput;
+				input.text = "starling feathers";
+				
+				area.textEditorFactory = styleArea;
+				area.text = "<TextFlow xmlns='http://ns.adobe.com/textLayout/2008' fontFamily='Arial' fontSize='24'>The <span fontStyle='italic'>quick</span> <span fontWeight='bold'>brown</span> <span lineThrough='true'>fox</span> <span color='#FF0000'>jumps</span> <span baselineShift='superscript'>over</span> <span typographicCase='uppercase'>the</span> <a href='http://actionscriptexamples.com/'>lazy</a> dog.</TextFlow>";
+			}
+		]]>
+    </fx:Script>
+	
+	<f:layout>
+		<f:VerticalLayout/>
+	</f:layout>
+
+	<f:TextInput width="300" id="input"/>
+	<f:LayoutGroup height="10"/>
+	<f:TextArea width="300" id="area"/>
+
+</f:Application>

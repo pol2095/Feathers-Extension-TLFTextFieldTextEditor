@@ -20,10 +20,12 @@ package feathers.extensions.controls.text
 
 	import flash.display.BitmapData;
 	import flash.display.Stage;
+	import flash.display.Sprite;
 	import flash.display3D.Context3DProfile;
 	import flash.events.FocusEvent;
 	import flash.events.KeyboardEvent;
 	import flash.events.SoftKeyboardEvent;
+	//import flash.events.TextEvent;
 	import flash.geom.Matrix;
 	import flash.geom.Matrix3D;
 	import flash.geom.Point;
@@ -32,10 +34,15 @@ package feathers.extensions.controls.text
 	import flash.text.AntiAliasType;
 	import flash.text.FontType;
 	import flash.text.GridFitType;
-	import fl.text.TLFTextField;
+	import fl.extensions.text.TLFTextField;
 	import flashx.textLayout.elements.TextFlow;
 	import flash.text.TextFieldAutoSize;
 	import flash.text.TextFieldType;
+	import flashx.textLayout.conversion.ConversionType;
+	import flashx.textLayout.conversion.TextConverter;
+	import flashx.textLayout.compose.IFlowComposer;
+	import flashx.textLayout.compose.TextFlowLine;
+	import flashx.textLayout.edit.SelectionFormat;
 	import flashx.textLayout.formats.TextLayoutFormat;
 	import flash.ui.Keyboard;
 
@@ -280,13 +287,17 @@ package feathers.extensions.controls.text
 		 * The text field sub-component.
 		 */
 		protected var textField:TLFTextField;
+		
+		private var textFieldChild:Sprite;
 
 		/**
 		 * @copy feathers.core.INativeFocusOwner#nativeFocus
 		 */
 		public function get nativeFocus():Object
 		{
-			return this.textField;
+			/*if(stage.starling.nativeStage.focus == null) return this.textField;
+			if( this.textField.contains(stage.starling.nativeStage.focus) ) return stage.starling.nativeStage.focus;*/
+			return this.textFieldChild;
 		}
 
 		/**
@@ -346,6 +357,8 @@ package feathers.extensions.controls.text
 		 * @private
 		 */
 		protected var _needsNewTexture:Boolean = false;
+		
+		private var dispatchChangeEvent:Boolean = true;
 
 		/**
 		 * @inheritDoc
@@ -377,16 +390,16 @@ package feathers.extensions.controls.text
 		/**
 		 * @private
 		 */
-		protected var _previousTextFormat:flashx.textLayout.formats.TextLayoutFormat;
+		protected var _previousTextFormat:TextLayoutFormat;
 
 		/**
 		 * @private
 		 */
-		protected var _currentTextFormat:flashx.textLayout.formats.TextLayoutFormat;
+		protected var _currentTextFormat:TextLayoutFormat;
 
 		/**
 		 * For debugging purposes, the current
-		 * <code>flashx.textLayout.formats.TextLayoutFormat</code> used to render the text. Updated
+		 * <code>TextLayoutFormat</code> used to render the text. Updated
 		 * during validation, and may be <code>null</code> before the first
 		 * validation.
 		 *
@@ -394,7 +407,7 @@ package feathers.extensions.controls.text
 		 * only. Use the parent's <code>starling.text.TextFormat</code> font
 		 * styles APIs instead.</p>
 		 */
-		public function get currentTextFormat():flashx.textLayout.formats.TextLayoutFormat
+		public function get currentTextFormat():TextLayoutFormat
 		{
 			return this._currentTextFormat;
 		}
@@ -407,12 +420,12 @@ package feathers.extensions.controls.text
 		/**
 		 * @private
 		 */
-		protected var _fontStylesTextFormat:flashx.textLayout.formats.TextLayoutFormat;
+		protected var _fontStylesTextFormat:TextLayoutFormat;
 
 		/**
 		 * @private
 		 */
-		protected var _textFormat:flashx.textLayout.formats.TextLayoutFormat;
+		protected var _textFormat:TextLayoutFormat;
 
 		/**
 		 * Advanced font formatting used to draw the text, if
@@ -429,15 +442,15 @@ package feathers.extensions.controls.text
 		 * <code>null</code>, any <code>starling.text.TextFormat</code> font
 		 * styles that are passed in from the parent component may be ignored.
 		 * In other words, advanced font styling with
-		 * <code>flashx.textLayout.formats.TextLayoutFormat</code> will always take precedence.</p>
+		 * <code>TextLayoutFormat</code> will always take precedence.</p>
 		 *
 		 * @default null
 		 *
 		 * @see #setTextFormatForState()
 		 * @see #disabledTextFormat
-		 * @see http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/text/TextFormat.html flashx.textLayout.formats.TextLayoutFormat
+		 * @see http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/text/TextFormat.html TextLayoutFormat
 		 */
-		public function get textFormat():flashx.textLayout.formats.TextLayoutFormat
+		public function get textFormat():TextLayoutFormat
 		{
 			return this._textFormat;
 		}
@@ -445,7 +458,7 @@ package feathers.extensions.controls.text
 		/**
 		 * @private
 		 */
-		public function set textFormat(value:flashx.textLayout.formats.TextLayoutFormat):void
+		public function set textFormat(value:TextLayoutFormat):void
 		{
 			if(this._textFormat == value)
 			{
@@ -462,7 +475,7 @@ package feathers.extensions.controls.text
 		/**
 		 * @private
 		 */
-		protected var _disabledTextFormat:flashx.textLayout.formats.TextLayoutFormat;
+		protected var _disabledTextFormat:TextLayoutFormat;
 
 		/**
 		 * Advanced font formatting used to draw the text when the component is
@@ -477,7 +490,7 @@ package feathers.extensions.controls.text
 		 * <code>null</code>, any <code>starling.text.TextFormat</code> font
 		 * styles that are passed in from the parent component may be ignored.
 		 * In other words, advanced font styling with
-		 * <code>flashx.textLayout.formats.TextLayoutFormat</code> will always take precedence.</p>
+		 * <code>TextLayoutFormat</code> will always take precedence.</p>
 		 *
 		 * <listing version="3.0">
 		 * textEditor.isEnabled = false;
@@ -486,9 +499,9 @@ package feathers.extensions.controls.text
 		 * @default null
 		 *
 		 * @see #textFormat
-		 * @see http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/text/TextFormat.html flashx.textLayout.formats.TextLayoutFormat
+		 * @see http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/text/TextFormat.html TextLayoutFormat
 		 */
-		public function get disabledTextFormat():flashx.textLayout.formats.TextLayoutFormat
+		public function get disabledTextFormat():TextLayoutFormat
 		{
 			return this._disabledTextFormat;
 		}
@@ -496,7 +509,7 @@ package feathers.extensions.controls.text
 		/**
 		 * @private
 		 */
-		public function set disabledTextFormat(value:flashx.textLayout.formats.TextLayoutFormat):void
+		public function set disabledTextFormat(value:TextLayoutFormat):void
 		{
 			if(this._disabledTextFormat == value)
 			{
@@ -512,7 +525,7 @@ package feathers.extensions.controls.text
 		protected var _embedFonts:Boolean = false;
 
 		/**
-		 * If advanced <code>flashx.textLayout.formats.TextLayoutFormat</code> styles are specified,
+		 * If advanced <code>TextLayoutFormat</code> styles are specified,
 		 * determines if the TextField should use an embedded font or not. If
 		 * the specified font is not embedded, the text may not be displayed at
 		 * all.
@@ -653,6 +666,42 @@ package feathers.extensions.controls.text
 				return;
 			}
 			this._isHTML = value;
+			this.invalidate(INVALIDATION_FLAG_DATA);
+		}
+		
+		/**
+		 * @private
+		 */
+		protected var _useTextFlow:Boolean = false;
+
+		/**
+		 * Determines if the TextField should display the value of the
+		 * <code>text</code> property as HTML or not.
+		 *
+		 * <p>In the following example, the text is displayed as HTML:</p>
+		 *
+		 * <listing version="3.0">
+		 * textEditor.isHTML = true;</listing>
+		 *
+		 * @default false
+		 *
+		 * @see http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/text/TextField.html#htmlText flash.text.TextField.htmlText
+		 */
+		public function get useTextFlow():Boolean
+		{
+			return this._useTextFlow;
+		}
+
+		/**
+		 * @private
+		 */
+		public function set useTextFlow(value:Boolean):void
+		{
+			if(this._useTextFlow == value)
+			{
+				return;
+			}
+			this._useTextFlow = value;
 			this.invalidate(INVALIDATION_FLAG_DATA);
 		}
 
@@ -1373,6 +1422,60 @@ package feathers.extensions.controls.text
 			this._useSnapshotDelayWorkaround = value;
 			this.invalidate(INVALIDATION_FLAG_DATA);
 		}
+		
+		/**
+		 * @private
+		 */
+		protected var _pointColor:uint = 0xFFFFFF;
+
+		/**
+		 * The color for drawing the cursor.
+		 *
+		 * @default 0xFFFFFF
+		 */
+		public function get pointColor():uint
+		{
+			return this._pointColor;
+		}
+
+		/**
+		 * @private
+		 */
+		public function set pointColor(value:uint):void
+		{
+			if(this._pointColor == value)
+			{
+				return;
+			}
+			this._pointColor = value;
+		}
+		
+		/**
+		 * @private
+		 */
+		protected var _rangeColor:uint = 0xb7d5fe;
+
+		/**
+		 * The color for drawing the highlight of a range selection.
+		 *
+		 * @default 0xFFFFFF
+		 */
+		public function get rangeColor():uint
+		{
+			return this._rangeColor;
+		}
+
+		/**
+		 * @private
+		 */
+		public function set rangeColor(value:uint):void
+		{
+			if(this._rangeColor == value)
+			{
+				return;
+			}
+			this._rangeColor = value;
+		}
 
 		/**
 		 * @private
@@ -1400,8 +1503,10 @@ package feathers.extensions.controls.text
 					this.textField.parent.removeChild(this.textField);
 				}
 				this.textField.removeEventListener(flash.events.Event.CHANGE, textField_changeHandler);
-				this.textField.removeEventListener(FocusEvent.FOCUS_IN, textField_focusInHandler);
-				this.textField.removeEventListener(FocusEvent.FOCUS_OUT, textField_focusOutHandler);
+				//this.textField.removeEventListener(TextEvent.TEXT_INPUT, textField_changeHandler);
+				this.textFieldChild.removeEventListener(FocusEvent.FOCUS_IN, textField_focusInHandler);
+				this.textFieldChild.removeEventListener(FocusEvent.FOCUS_OUT, textField_focusOutHandler);
+				this.textFieldChild.removeEventListener(FocusEvent.MOUSE_FOCUS_CHANGE, textField_mouseFocusChangeHandler);
 				this.textField.removeEventListener(KeyboardEvent.KEY_DOWN, textField_keyDownHandler);
 				this.textField.removeEventListener(SoftKeyboardEvent.SOFT_KEYBOARD_ACTIVATING, textField_softKeyboardActivatingHandler);
 				this.textField.removeEventListener(SoftKeyboardEvent.SOFT_KEYBOARD_ACTIVATE, textField_softKeyboardActivateHandler);
@@ -1522,6 +1627,7 @@ package feathers.extensions.controls.text
 						if(this._multiline)
 						{
 							var lineIndex:int = this.textField.getLineIndexAtPoint((this.textField.width / 2) / scaleX, positionY);
+							//var lineIndex:int = this.getLineIndexAtPoint((this.textField.width / 2) / scaleX, positionY);
 							try
 							{
 								this._pendingSelectionBeginIndex = this.textField.getLineOffset(lineIndex) + this.textField.getLineLength(lineIndex);
@@ -1675,26 +1781,26 @@ package feathers.extensions.controls.text
 		}
 
 		/**
-		 * Gets the advanced <code>flashx.textLayout.formats.TextLayoutFormat</code> font formatting
+		 * Gets the advanced <code>TextLayoutFormat</code> font formatting
 		 * passed in using <code>setTextFormatForState()</code> for the
 		 * specified state.
 		 *
-		 * <p>If an <code>flashx.textLayout.formats.TextLayoutFormat</code> is not defined for a
+		 * <p>If an <code>TextLayoutFormat</code> is not defined for a
 		 * specific state, returns <code>null</code>.</p>
 		 *
 		 * @see #setTextFormatForState()
 		 */
-		public function getTextFormatForState(state:String):flashx.textLayout.formats.TextLayoutFormat
+		public function getTextFormatForState(state:String):TextLayoutFormat
 		{
 			if(this._textFormatForState === null)
 			{
 				return null;
 			}
-			return flashx.textLayout.formats.TextLayoutFormat(this._textFormatForState[state]);
+			return TextLayoutFormat(this._textFormatForState[state]);
 		}
 
 		/**
-		 * Sets the advanced <code>flashx.textLayout.formats.TextLayoutFormat</code> font formatting
+		 * Sets the advanced <code>TextLayoutFormat</code> font formatting
 		 * to be used by the text editor when the <code>currentState</code>
 		 * property of the <code>stateContext</code> matches the specified state
 		 * value.
@@ -1710,7 +1816,7 @@ package feathers.extensions.controls.text
 		 * @see #stateContext
 		 * @see #textFormat
 		 */
-		public function setTextFormatForState(state:String, textFormat:flashx.textLayout.formats.TextLayoutFormat):void
+		public function setTextFormatForState(state:String, textFormat:TextLayoutFormat):void
 		{
 			if(textFormat)
 			{
@@ -1738,17 +1844,19 @@ package feathers.extensions.controls.text
 		override protected function initialize():void
 		{
 			this.textField = new TLFTextField();
+			this.textFieldChild = tlfFocus();
 			//let's ensure that the text field can only get keyboard focus
 			//through code. no need to set mouseEnabled to false since the text
 			//field won't be visible until it needs to be interactive, so it
 			//can't receive focus with mouse/touch anyway.
 			this.textField.tabEnabled = false;
-			this.textField.visible = false;
+			this.textField.visible = true; //false;
 			this.textField.needsSoftKeyboard = true;
 			this.textField.addEventListener(flash.events.Event.CHANGE, textField_changeHandler);
-			this.textField.addEventListener(FocusEvent.FOCUS_IN, textField_focusInHandler);
-			this.textField.addEventListener(FocusEvent.FOCUS_OUT, textField_focusOutHandler);
-			this.textField.addEventListener(FocusEvent.MOUSE_FOCUS_CHANGE, textField_mouseFocusChangeHandler);
+			//this.textField.addEventListener(TextEvent.TEXT_INPUT, textField_changeHandler);
+			this.textFieldChild.addEventListener(FocusEvent.FOCUS_IN, textField_focusInHandler);
+			this.textFieldChild.addEventListener(FocusEvent.FOCUS_OUT, textField_focusOutHandler);
+			this.textFieldChild.addEventListener(FocusEvent.MOUSE_FOCUS_CHANGE, textField_mouseFocusChangeHandler);
 			this.textField.addEventListener(KeyboardEvent.KEY_DOWN, textField_keyDownHandler);
 			this.textField.addEventListener(SoftKeyboardEvent.SOFT_KEYBOARD_ACTIVATING, textField_softKeyboardActivatingHandler);
 			this.textField.addEventListener(SoftKeyboardEvent.SOFT_KEYBOARD_ACTIVATE, textField_softKeyboardActivateHandler);
@@ -1902,9 +2010,12 @@ package feathers.extensions.controls.text
 		 */
 		protected function commitStylesAndData(textField:TLFTextField):void
 		{
-			textField.antiAliasType = this._antiAliasType;
+			dispatchChangeEvent = false;
+			//textField.antiAliasType = this._antiAliasType;
 			textField.background = this._background;
+			//textField.background = true;
 			textField.backgroundColor = this._backgroundColor;
+			textField.backgroundColor = 0xCCCCCC;
 			textField.border = this._border;
 			textField.borderColor = this._borderColor;
 			textField.gridFitType = this._gridFitType;
@@ -1923,6 +2034,8 @@ package feathers.extensions.controls.text
 				//automatically determine if the TextField should use embedded
 				//fonts, unless embedFonts is explicitly true
 				this.textField.embedFonts = SystemUtil.isEmbeddedFont(
+					/*this._currentTextFormat.font, this._currentTextFormat.bold,
+					this._currentTextFormat.italic, FontType.EMBEDDED);*/
 					this._currentTextFormat.fontFamily, this._currentTextFormat.fontWeight,
 					this._currentTextFormat.fontStyle, FontType.EMBEDDED);
 			}
@@ -1930,8 +2043,10 @@ package feathers.extensions.controls.text
 			{
 				this.textField.embedFonts = this._embedFonts;
 			}
-			textField.type = this._isEditable ? TextFieldType.INPUT : TextFieldType.DYNAMIC;
-			textField.selectable = this._isEnabled && (this._isEditable || this._isSelectable);
+			var textFieldType:String = this._isEditable ? TextFieldType.INPUT : TextFieldType.DYNAMIC;
+			if(textField.type != textFieldType) textField.type = textFieldType;
+			var textFieldSelectable:Boolean = this._isEnabled && (this._isEditable || this._isSelectable);
+			if(textField.selectable != textFieldSelectable) textField.selectable = textFieldSelectable;
 
 			var isFormatDifferent:Boolean = false;
 			if(textField === this.textField)
@@ -1957,9 +2072,11 @@ package feathers.extensions.controls.text
 				isFormatDifferent = true;
 			}
 			//textField.defaultTextFormat = this._currentTextFormat;
-			if(this._isHTML)
+			
+			if(this._useTextFlow)
 			{
-				if(isFormatDifferent || textField.htmlText != this._text)
+				var textFlow:String = TextConverter.export(textField.textFlow, TextConverter.TEXT_LAYOUT_FORMAT, ConversionType.STRING_TYPE) as String;
+				if(isFormatDifferent || textFlow != this._text)
 				{
 					if(textField == this.textField && this._pendingSelectionBeginIndex < 0)
 					{
@@ -1971,25 +2088,28 @@ package feathers.extensions.controls.text
 					}
 					//the TextField's text should be updated after a TextFormat
 					//change because otherwise it will keep using the old one.
-					textField.htmlText = this._text;
+					textField.tlfMarkup = this._text;
 				}
 			}
 			else
 			{
 				if(isFormatDifferent || textField.text != this._text)
 				{
-					var _text:String = this._text;
+					
 					if(textField == this.textField && this._pendingSelectionBeginIndex < 0)
 					{
 						this._pendingSelectionBeginIndex = this.textField.selectionBeginIndex;
 						this._pendingSelectionEndIndex = this.textField.selectionEndIndex;
 					}
-					textField.text = _text;
-					var myTextFlow:TextFlow = textField.textFlow;
-					myTextFlow.hostFormat = this._currentTextFormat;
-					myTextFlow.flowComposer.updateAllControllers();
+					textField.text = this._text;
 				}
 			}
+			var myTextFlowUse:TextFlow = textField.textFlow;
+			myTextFlowUse.hostFormat = this._currentTextFormat;
+			myTextFlowUse.flowComposer.updateAllControllers();
+			var selectionFormat:SelectionFormat = new SelectionFormat(rangeColor, 1, "difference", pointColor);
+			myTextFlowUse.interactionManager.focusedSelectionFormat = selectionFormat;
+			dispatchChangeEvent = true;
 		}
 
 		/**
@@ -1997,7 +2117,7 @@ package feathers.extensions.controls.text
 		 */
 		protected function refreshTextFormat():void
 		{
-			var textFormat:flashx.textLayout.formats.TextLayoutFormat;
+			var textFormat:TextLayoutFormat;
 			if(this._stateContext !== null)
 			{
 				if(this._textFormatForState !== null)
@@ -2005,7 +2125,7 @@ package feathers.extensions.controls.text
 					var currentState:String = this._stateContext.currentState;
 					if(currentState in this._textFormatForState)
 					{
-						textFormat = flashx.textLayout.formats.TextLayoutFormat(this._textFormatForState[currentState]);
+						textFormat = TextLayoutFormat(this._textFormatForState[currentState]);
 					}
 				}
 				if(textFormat === null && this._disabledTextFormat !== null &&
@@ -2027,7 +2147,7 @@ package feathers.extensions.controls.text
 			{
 				textFormat = this._textFormat;
 			}
-			//flashx.textLayout.formats.TextLayoutFormat is considered more advanced, so it gets
+			//TextLayoutFormat is considered more advanced, so it gets
 			//precedence over starling.text.TextFormat font styles
 			if(textFormat === null)
 			{
@@ -2039,7 +2159,7 @@ package feathers.extensions.controls.text
 		/**
 		 * @private
 		 */
-		protected function getTextFormatFromFontStyles():flashx.textLayout.formats.TextLayoutFormat
+		protected function getTextFormatFromFontStyles():TextLayoutFormat
 		{
 			if(this.isInvalid(INVALIDATION_FLAG_STYLES) ||
 				this.isInvalid(INVALIDATION_FLAG_STATE))
@@ -2059,7 +2179,7 @@ package feathers.extensions.controls.text
 				else if(this._fontStylesTextFormat === null)
 				{
 					//fallback to a default so that something is displayed
-					this._fontStylesTextFormat = new flashx.textLayout.formats.TextLayoutFormat();
+					this._fontStylesTextFormat = new TextLayoutFormat();
 				}
 			}
 			return this._fontStylesTextFormat;
@@ -2143,30 +2263,7 @@ package feathers.extensions.controls.text
 		 */
 		protected function getSelectionIndexAtPoint(pointX:Number, pointY:Number):int
 		{
-			return getCharAtPoint(this.textField, pointX, pointY); //this.textField.getCharIndexAtPoint(pointX, pointY);
-		}
-		import flashx.textLayout.compose.IFlowComposer;
-		import flashx.textLayout.compose.TextFlowLine;
-		private function getCharAtPoint(ta:TLFTextField, x:Number, y:Number) : int 
-		{
-
-			var globalPoint:Point = ta.localToGlobal(new Point(x, y));
-
-			var flowComposer:IFlowComposer = ta.textFlow.flowComposer;
-
-			for (var i:int = 0; i < flowComposer.numLines; i++){ 
-
-				var textFlowLine:TextFlowLine = flowComposer.getLineAt(i);
-
-				if (y >= textFlowLine.y && y < textFlowLine.height + textFlowLine.y)
-				{
-					return textFlowLine.absoluteStart 
-						 + textFlowLine.getTextLine(true)
-							 .getAtomIndexAtPoint(globalPoint.x, globalPoint.y);
-				}
-			}
-
-			return -1;
+			return this.textField.getCharIndexAtPoint(pointX, pointY);
 		}
 
 		/**
@@ -2473,9 +2570,9 @@ package feathers.extensions.controls.text
 		{
 			if(this.textSnapshot)
 			{
-				this.textSnapshot.visible = !this._textFieldHasFocus;
+				this.textSnapshot.visible = false; //!this._textFieldHasFocus;
 			}
-			this.textField.visible = this._textFieldHasFocus;
+			this.textField.visible = true; //this._textFieldHasFocus;
 
 			if(this._textFieldHasFocus)
 			{
@@ -2535,11 +2632,13 @@ package feathers.extensions.controls.text
 		/**
 		 * @private
 		 */
-		protected function textField_changeHandler(event:flash.events.Event):void
+		protected function textField_changeHandler(event:flash.events.Event):void //TextEvent):void
 		{
-			if(this._isHTML)
+			if( ! dispatchChangeEvent ) return;
+			if(this._useTextFlow)
 			{
-				this.text = this.textField.htmlText;
+				var textFlow:String = TextConverter.export(this.textField.textFlow, TextConverter.TEXT_LAYOUT_FORMAT, ConversionType.STRING_TYPE) as String;
+				this.text = textFlow;
 			}
 			else
 			{
@@ -2552,6 +2651,11 @@ package feathers.extensions.controls.text
 		 */
 		protected function textField_focusInHandler(event:FocusEvent):void
 		{
+			this.addEventListener( Event.ENTER_FRAME, textField_focusInHandlerEE);
+		}
+		private function textField_focusInHandlerEE(event:Event):void
+		{
+			this.removeEventListener( Event.ENTER_FRAME, textField_focusInHandlerEE);
 			this._textFieldHasFocus = true;
 			this.stage.addEventListener(TouchEvent.TOUCH, stage_touchHandler);
 			this.addEventListener(Event.ENTER_FRAME, hasFocus_enterFrameHandler);
@@ -2568,12 +2672,23 @@ package feathers.extensions.controls.text
 
 			if(this.resetScrollOnFocusOut)
 			{
-				this.textField.scrollH = this.textField.scrollV = 0;
+				this.addEventListener( Event.ENTER_FRAME, textField_focusOutHandlerEE);
+				//this.textField.scrollH = this.textField.scrollV = 0;
 			}
 
 			//the text may have changed, so we invalidate the data flag
 			this.invalidate(INVALIDATION_FLAG_DATA);
 			this.dispatchEventWith(FeathersEventType.FOCUS_OUT);
+		}
+		private function textField_focusOutHandlerEE(event:Event):void
+		{
+			this.removeEventListener( Event.ENTER_FRAME, textField_focusOutHandlerEE);
+			this.addEventListener( Event.ENTER_FRAME, textField_focusOutHandlerEENext);
+		}
+		private function textField_focusOutHandlerEENext(event:Event):void
+		{
+			this.removeEventListener( Event.ENTER_FRAME, textField_focusOutHandlerEENext);
+			if( ! this._textFieldHasFocus ) this.textField.scrollH = this.textField.scrollV = 0;
 		}
 
 		/**
@@ -2634,6 +2749,15 @@ package feathers.extensions.controls.text
 		{
 			this._previousStarlingTextFormat = null;
 			super.fontStylesSet_changeHandler(event);
+		}
+		
+		private function tlfFocus():Sprite
+		{
+			for(var i:int = 0; i < textField.numChildren; i++)
+			{
+				if( textField.getChildAt(i) is Sprite ) return textField.getChildAt(i) as Sprite;
+			}
+			return null;
 		}
 	}
 }
