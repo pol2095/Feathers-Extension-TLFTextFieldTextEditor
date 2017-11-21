@@ -685,7 +685,7 @@ package feathers.extensions.controls.text
 		 *
 		 * @default false
 		 *
-		 * @see http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/fl/text/TLFTextField.html#textFlow flash.text.TextField.htmlText
+		 * @see http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/fl/text/TLFTextField.html#textFlow fl.text.TLFTextField.textFlow
 		 */
 		public function get useTextFlow():Boolean
 		{
