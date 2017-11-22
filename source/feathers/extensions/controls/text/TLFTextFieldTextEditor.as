@@ -224,7 +224,7 @@ package feathers.extensions.controls.text
 	/**
 	 * Text that may be edited at runtime by the user with the
 	 * <code>TextInput</code> component, using the native
-	 * <code>flash.text.TextField</code> class with its <code>type</code>
+	 * <code>fl.text.TLFTextField</code> class with its <code>type</code>
 	 * property set to <code>flash.text.TextInputType.INPUT</code>. When not in
 	 * focus, the <code>TextField</code> is drawn to <code>BitmapData</code> and
 	 * uploaded to a texture on the GPU. Textures are managed internally by this
@@ -249,7 +249,7 @@ package feathers.extensions.controls.text
 	 *
 	 * @see feathers.controls.TextInput
 	 * @see ../../../../help/text-editors.html Introduction to Feathers text editors
-	 * @see http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/text/TextField.html flash.text.TextField
+	 * @see http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/fl/text/TLFTextField.html fl.text.TLFTextField
 	 *
 	 * @productversion Feathers 1.0.0
 	 */
@@ -630,42 +630,6 @@ package feathers.extensions.controls.text
 			}
 			this._multiline = value;
 			this.invalidate(INVALIDATION_FLAG_STYLES);
-		}
-
-		/**
-		 * @private
-		 */
-		protected var _isHTML:Boolean = false;
-
-		/**
-		 * Determines if the TextField should display the value of the
-		 * <code>text</code> property as HTML or not.
-		 *
-		 * <p>In the following example, the text is displayed as HTML:</p>
-		 *
-		 * <listing version="3.0">
-		 * textEditor.isHTML = true;</listing>
-		 *
-		 * @default false
-		 *
-		 * @see http://help.adobe.com/en_US/FlashPlatform/reference/actionscript/3/flash/text/TextField.html#htmlText flash.text.TextField.htmlText
-		 */
-		public function get isHTML():Boolean
-		{
-			return this._isHTML;
-		}
-
-		/**
-		 * @private
-		 */
-		public function set isHTML(value:Boolean):void
-		{
-			if(this._isHTML == value)
-			{
-				return;
-			}
-			this._isHTML = value;
-			this.invalidate(INVALIDATION_FLAG_DATA);
 		}
 		
 		/**
@@ -1849,7 +1813,7 @@ package feathers.extensions.controls.text
 			//field won't be visible until it needs to be interactive, so it
 			//can't receive focus with mouse/touch anyway.
 			this.textField.tabEnabled = false;
-			this.textField.visible = true; //false;
+			this.textField.visible = false;
 			this.textField.needsSoftKeyboard = true;
 			this.textField.addEventListener(flash.events.Event.CHANGE, textField_changeHandler);
 			//this.textField.addEventListener(TextEvent.TEXT_INPUT, textField_changeHandler);
@@ -2426,7 +2390,7 @@ package feathers.extensions.controls.text
 				this._isWaitingToSetFocus = false;
 				this.setFocus();
 			}
-
+			
 			if(this._pendingSelectionBeginIndex >= 0)
 			{
 				var startIndex:int = this._pendingSelectionBeginIndex;
@@ -2569,9 +2533,9 @@ package feathers.extensions.controls.text
 		{
 			if(this.textSnapshot)
 			{
-				this.textSnapshot.visible = false; //!this._textFieldHasFocus;
+				this.textSnapshot.visible = !this._textFieldHasFocus;
 			}
-			this.textField.visible = true; //this._textFieldHasFocus;
+			this.textField.visible = this._textFieldHasFocus;
 
 			if(this._textFieldHasFocus)
 			{
@@ -2650,11 +2614,6 @@ package feathers.extensions.controls.text
 		 */
 		protected function textField_focusInHandler(event:FocusEvent):void
 		{
-			this.addEventListener( Event.ENTER_FRAME, textField_focusInHandlerEE);
-		}
-		private function textField_focusInHandlerEE(event:Event):void
-		{
-			this.removeEventListener( Event.ENTER_FRAME, textField_focusInHandlerEE);
 			this._textFieldHasFocus = true;
 			this.stage.addEventListener(TouchEvent.TOUCH, stage_touchHandler);
 			this.addEventListener(Event.ENTER_FRAME, hasFocus_enterFrameHandler);
@@ -2671,23 +2630,12 @@ package feathers.extensions.controls.text
 
 			if(this.resetScrollOnFocusOut)
 			{
-				this.addEventListener( Event.ENTER_FRAME, textField_focusOutHandlerEE);
-				//this.textField.scrollH = this.textField.scrollV = 0;
+				this.textField.scrollH = this.textField.scrollV = 0;
 			}
 
 			//the text may have changed, so we invalidate the data flag
 			this.invalidate(INVALIDATION_FLAG_DATA);
 			this.dispatchEventWith(FeathersEventType.FOCUS_OUT);
-		}
-		private function textField_focusOutHandlerEE(event:Event):void
-		{
-			this.removeEventListener( Event.ENTER_FRAME, textField_focusOutHandlerEE);
-			this.addEventListener( Event.ENTER_FRAME, textField_focusOutHandlerEENext);
-		}
-		private function textField_focusOutHandlerEENext(event:Event):void
-		{
-			this.removeEventListener( Event.ENTER_FRAME, textField_focusOutHandlerEENext);
-			if( ! this._textFieldHasFocus ) this.textField.scrollH = this.textField.scrollV = 0;
 		}
 
 		/**

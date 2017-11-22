@@ -28,7 +28,7 @@ package feathers.extensions.controls.text
 
 	/**
 	 * A text editor view port for the <code>TextArea</code> component that uses
-	 * <code>flash.text.TextField</code>.
+	 * <code>fl.text.TLFTextField</code>.
 	 *
 	 * @see feathers.controls.TextArea
 	 *
