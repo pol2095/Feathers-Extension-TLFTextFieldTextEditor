@@ -2630,12 +2630,19 @@ package feathers.extensions.controls.text
 
 			if(this.resetScrollOnFocusOut)
 			{
-				this.textField.scrollH = this.textField.scrollV = 0;
+				this.addEventListener(Event.ENTER_FRAME, textField_focusOutLater);
+				//this.textField.scrollH = this.textField.scrollV = 0;
 			}
 
 			//the text may have changed, so we invalidate the data flag
 			this.invalidate(INVALIDATION_FLAG_DATA);
 			this.dispatchEventWith(FeathersEventType.FOCUS_OUT);
+		}
+		
+		private function textField_focusOutLater():void
+		{
+			if(this._textFieldHasFocus) return;
+			this.textField.scrollH = this.textField.scrollV = 0;
 		}
 
 		/**
