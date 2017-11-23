@@ -44,6 +44,7 @@ package feathers.extensions.controls.text
 	import flashx.textLayout.edit.SelectionFormat;
 	import flashx.textLayout.formats.TextLayoutFormat;
 	import flash.ui.Keyboard;
+	import flash.utils.setTimeout;
 
 	import starling.core.Starling;
 	import starling.display.DisplayObject;
@@ -1471,9 +1472,9 @@ package feathers.extensions.controls.text
 				this.textFieldChild.removeEventListener(FocusEvent.FOCUS_OUT, textField_focusOutHandler);
 				this.textFieldChild.removeEventListener(FocusEvent.MOUSE_FOCUS_CHANGE, textField_mouseFocusChangeHandler);
 				this.textField.removeEventListener(KeyboardEvent.KEY_DOWN, textField_keyDownHandler);
-				this.textField.removeEventListener(SoftKeyboardEvent.SOFT_KEYBOARD_ACTIVATING, textField_softKeyboardActivatingHandler);
-				this.textField.removeEventListener(SoftKeyboardEvent.SOFT_KEYBOARD_ACTIVATE, textField_softKeyboardActivateHandler);
-				this.textField.removeEventListener(SoftKeyboardEvent.SOFT_KEYBOARD_DEACTIVATE, textField_softKeyboardDeactivateHandler);
+				this.textFieldChild.removeEventListener(SoftKeyboardEvent.SOFT_KEYBOARD_ACTIVATING, textField_softKeyboardActivatingHandler);
+				this.textFieldChild.removeEventListener(SoftKeyboardEvent.SOFT_KEYBOARD_ACTIVATE, textField_softKeyboardActivateHandler);
+				this.textFieldChild.removeEventListener(SoftKeyboardEvent.SOFT_KEYBOARD_DEACTIVATE, textField_softKeyboardDeactivateHandler);
 			}
 			//this isn't necessary, but if a memory leak keeps the text renderer
 			//from being garbage collected, freeing up the text field may help
@@ -1820,10 +1821,10 @@ package feathers.extensions.controls.text
 			this.textFieldChild.addEventListener(FocusEvent.FOCUS_IN, textField_focusInHandler);
 			this.textFieldChild.addEventListener(FocusEvent.FOCUS_OUT, textField_focusOutHandler);
 			this.textFieldChild.addEventListener(FocusEvent.MOUSE_FOCUS_CHANGE, textField_mouseFocusChangeHandler);
-			this.textField.addEventListener(KeyboardEvent.KEY_DOWN, textField_keyDownHandler);
-			this.textField.addEventListener(SoftKeyboardEvent.SOFT_KEYBOARD_ACTIVATING, textField_softKeyboardActivatingHandler);
-			this.textField.addEventListener(SoftKeyboardEvent.SOFT_KEYBOARD_ACTIVATE, textField_softKeyboardActivateHandler);
-			this.textField.addEventListener(SoftKeyboardEvent.SOFT_KEYBOARD_DEACTIVATE, textField_softKeyboardDeactivateHandler);
+			this.textFieldChild.addEventListener(KeyboardEvent.KEY_DOWN, textField_keyDownHandler);
+			this.textFieldChild.addEventListener(SoftKeyboardEvent.SOFT_KEYBOARD_ACTIVATING, textField_softKeyboardActivatingHandler);
+			this.textFieldChild.addEventListener(SoftKeyboardEvent.SOFT_KEYBOARD_ACTIVATE, textField_softKeyboardActivateHandler);
+			this.textFieldChild.addEventListener(SoftKeyboardEvent.SOFT_KEYBOARD_DEACTIVATE, textField_softKeyboardDeactivateHandler);
 			//when adding more events here, don't forget to remove them when the
 			//text editor is disposed
 
@@ -2618,6 +2619,14 @@ package feathers.extensions.controls.text
 			this.stage.addEventListener(TouchEvent.TOUCH, stage_touchHandler);
 			this.addEventListener(Event.ENTER_FRAME, hasFocus_enterFrameHandler);
 			this.dispatchEventWith(FeathersEventType.FOCUS_IN);
+			this.textFieldChild.requestSoftKeyboard();
+			setTimeout( textField_focusInLater, 250 );
+		}
+		
+		private function textField_focusInLater():void
+		{
+			if( ! this._textFieldHasFocus ) return;
+			this.textFieldChild.requestSoftKeyboard();
 		}
 
 		/**
@@ -2641,6 +2650,7 @@ package feathers.extensions.controls.text
 		
 		private function textField_focusOutLater():void
 		{
+			this.removeEventListener(Event.ENTER_FRAME, textField_focusOutLater);
 			if(this._textFieldHasFocus) return;
 			this.textField.scrollH = this.textField.scrollV = 0;
 		}
