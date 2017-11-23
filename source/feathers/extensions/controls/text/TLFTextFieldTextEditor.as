@@ -45,6 +45,7 @@ package feathers.extensions.controls.text
 	import flashx.textLayout.formats.TextLayoutFormat;
 	import flash.ui.Keyboard;
 	import flash.utils.setTimeout;
+	import flash.system.Capabilities;
 
 	import starling.core.Starling;
 	import starling.display.DisplayObject;
@@ -295,8 +296,6 @@ package feathers.extensions.controls.text
 		 */
 		public function get nativeFocus():Object
 		{
-			/*if(stage.starling.nativeStage.focus == null) return this.textField;
-			if( this.textField.contains(stage.starling.nativeStage.focus) ) return stage.starling.nativeStage.focus;*/
 			return this.textFieldChild;
 		}
 
@@ -1294,6 +1293,7 @@ package feathers.extensions.controls.text
 		 *
 		 * @default false
 		 */
+		//override public function get maintainTouchFocus():Boolean // Feathers 3.4.0 or later
 		public function get maintainTouchFocus():Boolean
 		{
 			return this._maintainTouchFocus;
@@ -1467,11 +1467,21 @@ package feathers.extensions.controls.text
 					this.textField.parent.removeChild(this.textField);
 				}
 				this.textField.removeEventListener(flash.events.Event.CHANGE, textField_changeHandler);
-				//this.textField.removeEventListener(TextEvent.TEXT_INPUT, textField_changeHandler);
+				if(isMobile)
+				{
+					
+					this.textField.removeEventListener(FocusEvent.FOCUS_IN, textField_focusInHandler);
+					this.textField.removeEventListener(FocusEvent.FOCUS_OUT, textField_focusOutHandler);
+					this.textField.removeEventListener(FocusEvent.MOUSE_FOCUS_CHANGE, textField_mouseFocusChangeHandler);
+					this.textField.removeEventListener(SoftKeyboardEvent.SOFT_KEYBOARD_ACTIVATING, textField_softKeyboardActivatingHandler);
+					this.textField.removeEventListener(SoftKeyboardEvent.SOFT_KEYBOARD_ACTIVATE, textField_softKeyboardActivateHandler);
+					this.textField.removeEventListener(SoftKeyboardEvent.SOFT_KEYBOARD_DEACTIVATE, textField_softKeyboardDeactivateHandler);
+				}
+				this.textField.removeEventListener(KeyboardEvent.KEY_DOWN, textField_keyDownHandler);
+				
 				this.textFieldChild.removeEventListener(FocusEvent.FOCUS_IN, textField_focusInHandler);
 				this.textFieldChild.removeEventListener(FocusEvent.FOCUS_OUT, textField_focusOutHandler);
 				this.textFieldChild.removeEventListener(FocusEvent.MOUSE_FOCUS_CHANGE, textField_mouseFocusChangeHandler);
-				this.textField.removeEventListener(KeyboardEvent.KEY_DOWN, textField_keyDownHandler);
 				this.textFieldChild.removeEventListener(SoftKeyboardEvent.SOFT_KEYBOARD_ACTIVATING, textField_softKeyboardActivatingHandler);
 				this.textFieldChild.removeEventListener(SoftKeyboardEvent.SOFT_KEYBOARD_ACTIVATE, textField_softKeyboardActivateHandler);
 				this.textFieldChild.removeEventListener(SoftKeyboardEvent.SOFT_KEYBOARD_DEACTIVATE, textField_softKeyboardDeactivateHandler);
@@ -1817,11 +1827,20 @@ package feathers.extensions.controls.text
 			this.textField.visible = false;
 			this.textField.needsSoftKeyboard = true;
 			this.textField.addEventListener(flash.events.Event.CHANGE, textField_changeHandler);
-			//this.textField.addEventListener(TextEvent.TEXT_INPUT, textField_changeHandler);
+			if(isMobile)
+			{
+				this.textField.addEventListener(FocusEvent.FOCUS_IN, textField_focusInHandler);
+				this.textField.addEventListener(FocusEvent.FOCUS_OUT, textField_focusOutHandler);
+				this.textField.addEventListener(FocusEvent.MOUSE_FOCUS_CHANGE, textField_mouseFocusChangeHandler);
+				this.textField.addEventListener(SoftKeyboardEvent.SOFT_KEYBOARD_ACTIVATING, textField_softKeyboardActivatingHandler);
+				this.textField.addEventListener(SoftKeyboardEvent.SOFT_KEYBOARD_ACTIVATE, textField_softKeyboardActivateHandler);
+				this.textField.addEventListener(SoftKeyboardEvent.SOFT_KEYBOARD_DEACTIVATE, textField_softKeyboardDeactivateHandler);
+			}
+			this.textField.addEventListener(KeyboardEvent.KEY_DOWN, textField_keyDownHandler);
+			
 			this.textFieldChild.addEventListener(FocusEvent.FOCUS_IN, textField_focusInHandler);
 			this.textFieldChild.addEventListener(FocusEvent.FOCUS_OUT, textField_focusOutHandler);
 			this.textFieldChild.addEventListener(FocusEvent.MOUSE_FOCUS_CHANGE, textField_mouseFocusChangeHandler);
-			this.textFieldChild.addEventListener(KeyboardEvent.KEY_DOWN, textField_keyDownHandler);
 			this.textFieldChild.addEventListener(SoftKeyboardEvent.SOFT_KEYBOARD_ACTIVATING, textField_softKeyboardActivatingHandler);
 			this.textFieldChild.addEventListener(SoftKeyboardEvent.SOFT_KEYBOARD_ACTIVATE, textField_softKeyboardActivateHandler);
 			this.textFieldChild.addEventListener(SoftKeyboardEvent.SOFT_KEYBOARD_DEACTIVATE, textField_softKeyboardDeactivateHandler);
@@ -2722,6 +2741,19 @@ package feathers.extensions.controls.text
 				if( textField.getChildAt(i) is Sprite ) return textField.getChildAt(i) as Sprite;
 			}
 			return null;
+		}
+		
+		private function get isAndroid():Boolean
+		{
+			return (Capabilities.version.indexOf("AND") != -1);
+		}
+		private function get isiOS():Boolean
+		{
+			return (Capabilities.version.indexOf("IOS") != -1);
+		}
+		private function get isMobile():Boolean
+		{
+			return (isAndroid || isiOS);
 		}
 	}
 }
