@@ -233,19 +233,19 @@ package feathers.extensions.controls.text
 	 * component, and they will be automatically disposed when the component is
 	 * disposed.
 	 *
-	 * <p>For desktop apps, <code>TextFieldTextEditor</code> is recommended
+	 * <p>For desktop apps, <code>TLFTextFieldTextEditor</code> is recommended
 	 * instead of <code>StageTextTextEditor</code>. <code>StageTextTextEditor</code>
 	 * will still work in desktop apps, but it is more appropriate for mobile
 	 * apps.</p>
 	 *
 	 * <p>The following example shows how to use
-	 * <code>TextFieldTextEditor</code> with a <code>TextInput</code>:</p>
+	 * <code>TLFTextFieldTextEditor</code> with a <code>TextInput</code>:</p>
 	 *
 	 * <listing version="3.0">
 	 * var input:TextInput = new TextInput();
 	 * input.textEditorFactory = function():ITextEditor
 	 * {
-	 *     return new TextFieldTextEditor();
+	 *     return new TLFTextFieldTextEditor();
 	 * };
 	 * this.addChild( input );</listing>
 	 *
@@ -258,7 +258,7 @@ package feathers.extensions.controls.text
 	public class TLFTextFieldTextEditor extends BaseTextEditor implements ITextEditor, INativeFocusOwner
 	{
 		/**
-		 * The default <code>IStyleProvider</code> for all <code>TextFieldTextEditor</code>
+		 * The default <code>IStyleProvider</code> for all <code>TLFTextFieldTextEditor</code>
 		 * components.
 		 *
 		 * @default null
@@ -274,6 +274,7 @@ package feathers.extensions.controls.text
 			this.isQuickHitAreaEnabled = true;
 			this.addEventListener(Event.ADDED_TO_STAGE, textEditor_addedToStageHandler);
 			this.addEventListener(Event.REMOVED_FROM_STAGE, textEditor_removedFromStageHandler);
+			this.isMobile = isAndroid || isiOS;
 		}
 
 		/**
@@ -1445,6 +1446,23 @@ package feathers.extensions.controls.text
 		 * @private
 		 */
 		protected var resetScrollOnFocusOut:Boolean = true;
+		
+		protected var _isMobile:Boolean;
+		/**
+		 * Determines if the application is running as a mobile or desktop air applicaton.
+		 */
+		public function get isMobile():Boolean
+		{
+			return this._isMobile;
+		}
+		public function set isMobile(value:Boolean):void
+		{
+			if(this._isMobile == value)
+			{
+				return;
+			}
+			this._isMobile = value;
+		}
 
 		/**
 		 * @private
@@ -1467,7 +1485,7 @@ package feathers.extensions.controls.text
 					this.textField.parent.removeChild(this.textField);
 				}
 				this.textField.removeEventListener(flash.events.Event.CHANGE, textField_changeHandler);
-				if(isMobile)
+				if(this.isMobile)
 				{
 					
 					this.textField.removeEventListener(FocusEvent.FOCUS_IN, textField_focusInHandler);
@@ -1827,7 +1845,7 @@ package feathers.extensions.controls.text
 			this.textField.visible = false;
 			this.textField.needsSoftKeyboard = true;
 			this.textField.addEventListener(flash.events.Event.CHANGE, textField_changeHandler);
-			if(isMobile)
+			if(this.isMobile)
 			{
 				this.textField.addEventListener(FocusEvent.FOCUS_IN, textField_focusInHandler);
 				this.textField.addEventListener(FocusEvent.FOCUS_OUT, textField_focusOutHandler);
@@ -2743,17 +2761,13 @@ package feathers.extensions.controls.text
 			return null;
 		}
 		
-		private function get isAndroid():Boolean
+		protected function get isAndroid():Boolean
 		{
 			return (Capabilities.version.indexOf("AND") != -1);
 		}
-		private function get isiOS():Boolean
+		protected function get isiOS():Boolean
 		{
 			return (Capabilities.version.indexOf("IOS") != -1);
-		}
-		private function get isMobile():Boolean
-		{
-			return (isAndroid || isiOS);
 		}
 	}
 }
