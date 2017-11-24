@@ -6,6 +6,8 @@ Text that may be edited at runtime by the user with the TextInput ot TextArea co
 For desktop apps, TLFTextFieldTextEditor is recommended instead of StageTextTextEditor. StageTextTextEditor will still work in desktop apps, but it is more appropriate for mobile apps.
 ## Quick Links
 
+* [Website](http://pol2095.free.fr/Starling-Feathers-Extensions/)
+* [API Reference](http://pol2095.free.fr/Starling-Feathers-Extensions/docs/feathers/extensions/controls/text/package-detail.html)
 * [Discussion Forum](http://forum.starling-framework.org/forum/feathers)
 * [Github Project](https://github.com/pol2095/Feathers-Extension-TLFTextFieldTextEditor)
 
