@@ -1294,8 +1294,8 @@ package feathers.extensions.controls.text
 		 *
 		 * @default false
 		 */
-		//override public function get maintainTouchFocus():Boolean // Feathers 3.4.0 or later
-		public function get maintainTouchFocus():Boolean
+		//public function get maintainTouchFocus():Boolean // Feathers 3.3.1 and earlier
+		override public function get maintainTouchFocus():Boolean
 		{
 			return this._maintainTouchFocus;
 		}
